@@ -1,13 +1,40 @@
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
 export async function activate(context: vscode.ExtensionContext) {
 	let lastLength = vscode.window.tabGroups.activeTabGroup.tabs.length;
+	let lastActiveGroup = {} as vscode.TabGroup;
+	let splitCount = vscode.window.tabGroups.all.length;
+	const sleepTime = 100;
 
 	for (;;) {
 		const activeGroup = vscode.window.tabGroups.activeTabGroup;
 
+		// We opened a new split
+		if (splitCount < vscode.window.tabGroups.all.length) {
+			const uris = getURIsGroup(lastActiveGroup);
+
+			for (let j = 0; j < uris.length; j++) {
+				vscode.window.showTextDocument(uris[j], {
+					preserveFocus: true,
+					preview: false,
+					viewColumn: activeGroup.viewColumn,
+				});
+			}
+
+			splitCount = vscode.window.tabGroups.all.length;
+
+			lastLength = activeGroup.tabs.length;
+
+			lastActiveGroup = vscode.window.tabGroups.activeTabGroup;
+
+			await sleep(sleepTime);
+
+			continue;
+		}
+
 		if (activeGroup.tabs.length == lastLength) {
-			await sleep(10);
+			lastActiveGroup = vscode.window.tabGroups.activeTabGroup;
+			await sleep(sleepTime);
 
 			continue;
 		} else if (activeGroup.tabs.length > lastLength) {
@@ -46,15 +73,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
 			for (let i = 0; i < groups.length; i++) {
 				for (let k = 0; k < groups[i].tabs.length; k++) {
-					const thisInput = groups[i].tabs[k].input as vscode.TabInputText;
+					const thisInput = groups[i].tabs[k]
+						.input as vscode.TabInputText;
 					if (!existsInArray(uris, thisInput.uri.path)) {
-						const lastTab = vscode.window.tabGroups.all[i].activeTab;
+						const lastTab =
+							vscode.window.tabGroups.all[i].activeTab;
 						const inp = lastTab?.input as vscode.TabInputText;
-						let doFocus = false;
 
-						if (inp === groups[i].tabs[k].input) {
-							doFocus = true;
-						}
+						let doFocus = inp === groups[i].tabs[k].input;
 
 						vscode.window.tabGroups.close(groups[i].tabs[k], true);
 
@@ -67,8 +93,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 
 		lastLength = activeGroup.tabs.length;
+		lastActiveGroup = vscode.window.tabGroups.activeTabGroup;
 
-		await sleep(10);
+		await sleep(sleepTime);
 	}
 }
 
