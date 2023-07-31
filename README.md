@@ -10,10 +10,12 @@ I've done a terrible thing
 
 ## Terrible things
 
-- Resets back to whatever the current file is on any split, closing all other files.
-- Will sometimes focus whatever file was opened in all editors
+-   Resets back to whatever the current file is on any split, closing all other files.
+-   Will sometimes focus whatever file was opened in all editors
 
 ## Installation
+
+Find it in the marketplace, or:
 
 ```
 npm run compile
